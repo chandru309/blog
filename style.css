@@ -1,0 +1,235 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6fa;
+    color: #333;
+}
+
+.dark { background: #111; color: #eee; }
+
+.site-header {
+    padding: 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    background: white;
+}
+
+.dark .site-header { background: #1e1e1e; }
+
+.header-actions button { margin-left: 0.5rem; }
+
+.carousel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+.slide {
+    background: white;
+    padding: 1rem;
+    border-radius: 10px;
+}
+
+.dark .slide { background: #1e1e1e; }
+
+.slide img {
+    width: 100%;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.actions .delete-btn {
+    background: #f07f7f;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.actions .edit-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.add-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 2.5rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* Admin button */
+.admin-btn {
+    position: fixed;
+    top: 65px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background:white;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Admin Modal */
+.admin-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+
+.admin-content {
+    background: white;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 400px;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-content input,
+.modal-content textarea {
+    width: 100%;
+    margin-top: 0.6rem;
+    padding: 0.5rem;
+}
+
+.drop-zone {
+    border: 2px dashed #aaa;
+    padding: 1rem;
+    text-align: center;
+    margin-top: 0.6rem;
+    cursor: pointer;
+}
+
+/* Lock */
+.lock {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.lock-box {
+    background: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+/* Confirm Toast */
+.confirm-toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #000;
+  padding: 12px 16px;
+  border-radius: 10px;
+  display: none;
+  z-index: 999;
+  font-size: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.confirm-actions button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.confirm-actions button:first-child {
+  background: #dc2626;
+  color: #fff;
+}
+
+.confirm-actions button:last-child {
+  background: #aaa;
+  color: #fff;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  display: none;
+  z-index: 999;
+  font-size: 14px;
+}
+
+.toast.show {
+  display: block;
+  animation: fadeInOut 3s ease forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+}
+
+/* Print Export */
+@media print {
+    .add-btn, .actions, .site-header, .lock, .admin-btn { display: none; }
+}

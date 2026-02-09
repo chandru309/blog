@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Slides Portfolio</title>
+
+<!-- Prism.js -->
+<link href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-tomorrow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/prismjs/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-javascript.min.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Password Lock -->
+<div class="lock" id="lock">
+    <div class="lock-box">
+        <h2>Enter Password</h2>
+        <input type="password" id="passwordInput" placeholder="Password">
+        <button onclick="unlock()">Unlock</button>
+    </div>
+</div>
+
+<header class="site-header">
+    <h1>My Code Slides</h1>
+    <div class="header-actions">
+        <button onclick="toggleDark()">🌙</button>
+        <button onclick="exportHTML()">📄 </button>
+        <button onclick="exportPDF()">🖨️ </button>
+    </div>
+</header>
+
+<main class="carousel" id="carousel"></main>
+
+<button class="add-btn" onclick="openModal()">+</button>
+
+<!-- Admin Login Button -->
+<button class="admin-btn" id="adminBtn" onclick="openAdminModal()">Admin</button>
+
+<!-- Admin Modal -->
+<div class="admin-modal" id="adminModal">
+    <div class="admin-content">
+        <h2>Admin Login</h2>
+        <input type="password" id="adminPass" placeholder="Admin Password">
+        <button onclick="adminLogin()">Login</button>
+        <button class="cancel" onclick="closeAdminModal()">Cancel</button>
+        <button class="logout" onclick="adminLogout()">Logout</button>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Add Slide</h2>
+
+        <input id="slideTitle" placeholder="Slide title">
+
+        <div class="drop-zone" id="dropZone">
+            <p>Drag & drop image here or click</p>
+            <input type="file" id="imageFile" accept="image/*" hidden>
+        </div>
+
+        <textarea id="slideCode" placeholder="Paste code here"></textarea>
+
+        <div class="modal-actions">
+            <button onclick="saveSlide()">Save</button>
+            <button class="cancel" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Delete Popup -->
+<div id="confirmToast" class="confirm-toast">
+  <p>Delete this slide?</p>
+  <div class="confirm-actions">
+    <button id="confirmYes">Yes</button>
+    <button id="confirmNo">No</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+/* ===== Toast Message ===== */
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.innerText = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
+}
+
+/* ===== DOM Elements ===== */
+const modal = document.getElementById("modal");
+const slideTitle = document.getElementById("slideTitle");
+const slideCode = document.getElementById("slideCode");
+const passwordInput = document.getElementById("passwordInput");
+const carousel = document.getElementById("carousel");
+const adminModal = document.getElementById("adminModal");
+const adminPass = document.getElementById("adminPass");
+const confirmModal = document.getElementById("confirmToast");
+
+let deleteIndex = null; // store index for delete confirmation
+
+/* ===== Password Lock ===== */
+const PASSWORD = "1234";
+function unlock() {
+    if (passwordInput.value === PASSWORD) {
+        document.getElementById("lock").style.display = "none";
+        showToast("Unlocked!");
+    } else {
+        showToast("Wrong password");
+    }
+}
+
+/* ===== Admin ===== */
+let isAdmin = sessionStorage.getItem("isAdmin") === "true";
+const ADMIN_PASSWORD = "admin123";
+
+function openAdminModal() {
+    adminModal.style.display = "flex";
+}
+
+function closeAdminModal() {
+    adminModal.style.display = "none";
+}
+
+function adminLogin() {
+    if (adminPass.value === ADMIN_PASSWORD) {
+        isAdmin = true;
+        sessionStorage.setItem("isAdmin", "true");
+        closeAdminModal();
+        renderSlides(); // re-render to show delete & edit buttons
+        showToast("Admin logged in!");
+    } else {
+        showToast("Wrong admin password!");
+    }
+}
+
+function adminLogout() {
+    isAdmin = false;
+    sessionStorage.setItem("isAdmin", "false");
+    closeAdminModal();
+    renderSlides(); // re-render to hide delete & edit buttons
+    showToast("Logged out!");
+}
+
+/* ===== Dark Mode ===== */
+let dark = localStorage.getItem("dark") === "true";
+if (dark) document.body.classList.add("dark");
+
+function toggleDark() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("dark", document.body.classList.contains("dark"));
+}
+
+/* ===== Slides ===== */
+let slides = JSON.parse(localStorage.getItem("slides")) || [];
+let editIndex = null;
+let imageData = "";
+
+/* ===== Render Slides ===== */
+function renderSlides() {
+    carousel.innerHTML = "";
+
+    slides.forEach((s, i) => {
+        const el = document.createElement("div");
+        el.className = "slide";
+
+        el.innerHTML = `
+            ${s.image ? `<img src="${s.image}">` : ""}
+            <h3>${s.title}</h3>
+            <pre><code class="language-javascript">${s.code}</code></pre>
+            <div class="actions">
+                ${isAdmin ? `<button class="edit-btn" data-index="${i}">Edit</button>` : ""}
+                ${isAdmin ? `<button class="delete-btn" data-index="${i}">Delete</button>` : ""}
+            </div>
+        `;
+        carousel.appendChild(el);
+    });
+
+    Prism.highlightAll();
+    localStorage.setItem("slides", JSON.stringify(slides));
+}
+
+/* ===== Event Delegation for Delete + Edit ===== */
+carousel.addEventListener("click", (e) => {
+    const deleteBtn = e.target.closest(".delete-btn");
+    const editBtn = e.target.closest(".edit-btn");
+
+    if (deleteBtn && isAdmin) {
+        deleteIndex = Number(deleteBtn.getAttribute("data-index"));
+        confirmModal.style.display = "block"; // show confirm popup
+    }
+
+    if (editBtn && isAdmin) {
+        const index = Number(editBtn.getAttribute("data-index"));
+        if (!isNaN(index)) {
+            editSlide(index);
+        }
+    }
+});
+
+/* ===== Confirm Delete ===== */
+document.getElementById("confirmYes").onclick = () => {
+    if (deleteIndex !== null) {
+        slides.splice(deleteIndex, 1);
+        renderSlides();
+        showToast("Slide deleted!");
+        confirmModal.style.display = "none";
+        deleteIndex = null;
+    }
+};
+
+document.getElementById("confirmNo").onclick = () => {
+    confirmModal.style.display = "none";
+    deleteIndex = null;
+};
+
+/* ===== Modal ===== */
+function openModal(edit=false) {
+    modal.style.display = "flex";
+    if (!edit) {
+        editIndex = null;
+        slideTitle.value = "";
+        slideCode.value = "";
+        imageData = "";
+        document.getElementById("modalTitle").innerText = "Add Slide";
+    }
+}
+
+function closeModal() {
+    modal.style.display = "none";
+}
+
+function saveSlide() {
+    const slide = {
+        title: slideTitle.value,
+        image: imageData,
+        code: slideCode.value
+    };
+
+    if (!slide.title || !slide.code) {
+        showToast("Title & code required");
+        return;
+    }
+
+    if (editIndex !== null) slides[editIndex] = slide;
+    else slides.push(slide);
+
+    closeModal();
+    renderSlides();
+    showToast("Slide saved!");
+}
+
+function editSlide(i) {
+    editIndex = i;
+    slideTitle.value = slides[i].title;
+    slideCode.value = slides[i].code;
+    imageData = slides[i].image;
+    document.getElementById("modalTitle").innerText = "Edit Slide";
+    openModal(true);
+}
+
+/* ===== Drag & Drop Image ===== */
+const dropZone = document.getElementById("dropZone");
+const imageFile = document.getElementById("imageFile");
+
+dropZone.onclick = () => imageFile.click();
+
+dropZone.ondragover = e => {
+    e.preventDefault();
+    dropZone.style.borderColor = "#2563eb";
+};
+
+dropZone.ondragleave = () => {
+    dropZone.style.borderColor = "#aaa";
+};
+
+dropZone.ondrop = e => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    loadImage(file);
+};
+
+imageFile.onchange = e => loadImage(e.target.files[0]);
+
+function loadImage(file) {
+    const reader = new FileReader();
+    reader.onload = () => imageData = reader.result;
+    reader.readAsDataURL(file);
+}
+
+/* ===== Export HTML ===== */
+function exportHTML() {
+    let html = slides.map(s => `
+        <h2>${s.title}</h2>
+        ${s.image ? `<img src="${s.image}" style="max-width:100%">` : ""}
+        <pre>${s.code}</pre>
+    `).join("");
+
+    const blob = new Blob([html], { type: "text/html" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "portfolio.html";
+    a.click();
+    showToast("Exported HTML!");
+}
+
+/* ===== Export PDF ===== */
+function exportPDF() {
+    window.print();
+    showToast("Print dialog opened!");
+}
+
+/* ===== Initial Render ===== */
+renderSlides();
+</script>
+
+</body>
+</html>
